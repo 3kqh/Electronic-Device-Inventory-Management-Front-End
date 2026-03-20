@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 export default function Home() {
+  const navigate = useNavigate();
+
   return (
     <div
       style={{
@@ -38,7 +42,7 @@ export default function Home() {
             <a href="#features" style={navLinkStyle}>Chức năng</a>
             <a href="#benefits" style={navLinkStyle}>Lợi ích</a>
 
-            <button style={primaryBtn}>Bắt đầu</button>
+            <button style={primaryBtn} onClick={() => navigate("/login")}>Bắt đầu</button>
           </div>
         </div>
       </nav>
@@ -54,8 +58,8 @@ export default function Home() {
           </p>
 
           <div style={{ display: "flex", gap: "1rem", marginTop: "2rem" }}>
-            <button style={primaryBtn}>Bắt đầu ngay</button>
-            <button style={outlineBtn}>Xem Demo</button>
+            <button style={primaryBtn} onClick={() => navigate("/login")}>Bắt đầu ngay</button>
+            <button style={outlineBtn} onClick={() => navigate("/login")}>Xem Demo</button>
           </div>
         </div>
       </section>
@@ -95,8 +99,8 @@ export default function Home() {
       <section style={{ padding: "5rem 1.5rem", textAlign: "center" }}>
         <h2 style={{ fontSize: "2.25rem" }}>Sẵn sàng nâng cấp quản lý thiết bị?</h2>
         <div style={{ marginTop: "2rem", display: "flex", gap: "1rem", justifyContent: "center" }}>
-          <button style={primaryBtn}>Bắt đầu miễn phí</button>
-          <button style={outlineBtn}>Liên hệ Sales</button>
+          <button style={primaryBtn} onClick={() => navigate("/login")}>Bắt đầu miễn phí</button>
+          <button style={outlineBtn} onClick={() => navigate("/login")}>Liên hệ Sales</button>
         </div>
       </section>
 
