@@ -6,8 +6,8 @@ export const getWarrantyReport = () =>
 export const getWarrantyAlerts = () =>
   apiClient.get("/reports/warranty-alerts");
 
-export const getDepreciationReport = () =>
-  apiClient.get("/reports/depreciation");
+export const getDepreciationReport = (categoryId) =>
+  apiClient.get("/reports/depreciation", { params: { categoryId } });
 
 export const getDeviceStatusReport = () =>
   apiClient.get("/reports/device-status");

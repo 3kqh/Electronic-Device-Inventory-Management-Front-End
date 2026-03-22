@@ -18,6 +18,8 @@ import CategoryPage from "../pages/categories/CategoryPage";
 import LocationPage from "../pages/locations/LocationPage";
 import AssignmentListPage from "../pages/assignments/AssignmentListPage";
 import MaintenanceListPage from "../pages/maintenance/MaintenanceListPage";
+import MaintenanceRequestPage from "../pages/maintenance/MaintenanceRequestPage";
+import MaintenanceSchedulePage from "../pages/maintenance/MaintenanceSchedulePage";
 import WarrantyListPage from "../pages/warranties/WarrantyListPage";
 import WarrantyClaimPage from "../pages/warranties/WarrantyClaimPage";
 import DepreciationPage from "../pages/depreciation/DepreciationPage";
@@ -53,6 +55,15 @@ export default function AppRoutes() {
             <Route path="/locations" element={<LocationPage />} />
             <Route path="/assignments" element={<AssignmentListPage />} />
             <Route path="/maintenance" element={<MaintenanceListPage />} />
+            <Route path="/maintenance/request" element={<MaintenanceRequestPage />} />
+            <Route
+              path="/maintenance/schedule"
+              element={
+                <RoleGuard allowedRoles={["admin", "inventory_manager"]}>
+                  <MaintenanceSchedulePage />
+                </RoleGuard>
+              }
+            />
             <Route path="/warranties" element={<WarrantyListPage />} />
             <Route path="/warranties/claims" element={<WarrantyClaimPage />} />
             <Route path="/depreciation" element={<DepreciationPage />} />

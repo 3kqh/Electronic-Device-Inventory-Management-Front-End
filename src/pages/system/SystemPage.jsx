@@ -8,8 +8,8 @@ import {
   getBackupList,
   downloadBackup,
   deleteBackup,
-  getSystemLogs,
 } from '../../api/systemService';
+import { getAuditLogs } from '../../api/auditLogService';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { showNotification } from '../../components/Notification';
@@ -187,12 +187,13 @@ export default function SystemPage() {
     setLogsError('');
     try {
       const params = {};
-      if (logFilters.startDate) params.startDate = logFilters.startDate;
-      if (logFilters.endDate) params.endDate = logFilters.endDate;
-      if (logFilters.level) params.level = logFilters.level;
-      const res = await getSystemLogs(params);
+      if (logFilters.startDate) params.fromDate = logFilters.startDate;
+      if (logFilters.endDate) params.toDate = logFilters.endDate;
+      if (logFilters.level) params.action = logFilters.level;
+      const res = await getAuditLogs(params);
       const data = res.data;
-      setLogs(data.logs || data.data || data || []);
+      const list = data.data || data.logs || [];
+      setLogs(Array.isArray(list) ? list : []);
     } catch (err) {
       setLogsError(err.response?.data?.message || 'Không thể tải nhật ký hệ thống');
     } finally {
@@ -573,7 +574,7 @@ export default function SystemPage() {
               />
             </div>
             <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Mức độ</label>
+              <label style={styles.filterLabel}>Hành động</label>
               <select
                 style={styles.select}
                 name="level"
@@ -581,9 +582,10 @@ export default function SystemPage() {
                 onChange={handleLogFilterChange}
               >
                 <option value="">Tất cả</option>
-                <option value="info">Info</option>
-                <option value="warn">Warn</option>
-                <option value="error">Error</option>
+                <option value="CREATE">Tạo mới</option>
+                <option value="UPDATE">Cập nhật</option>
+                <option value="DELETE">Xóa</option>
+                <option value="LOGIN">Đăng nhập</option>
               </select>
             </div>
             <button style={styles.searchBtn} onClick={fetchLogs}>Lọc</button>
@@ -603,30 +605,39 @@ export default function SystemPage() {
               <thead>
                 <tr>
                   <th style={styles.th}>Thời gian</th>
-                  <th style={styles.th}>Mức độ</th>
-                  <th style={styles.th}>Nội dung</th>
+                  <th style={styles.th}>Hành động</th>
+                  <th style={styles.th}>Module</th>
+                  <th style={styles.th}>Người dùng</th>
+                  <th style={styles.th}>Mô tả</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.length === 0 ? (
                   <tr>
-                    <td colSpan={3} style={styles.emptyState}>Không có nhật ký nào</td>
+                    <td colSpan={5} style={styles.emptyState}>Không có nhật ký nào</td>
                   </tr>
                 ) : (
-                  logs.map((log, idx) => (
-                    <tr key={log._id || idx}>
-                      <td style={styles.td}>{formatDate(log.timestamp || log.createdAt)}</td>
-                      <td style={styles.td}>
-                        <span style={{
-                          ...styles.levelBadge,
-                          ...(levelColors[log.level] || levelColors.info),
-                        }}>
-                          {log.level || 'info'}
-                        </span>
-                      </td>
-                      <td style={styles.td}>{log.message || '—'}</td>
-                    </tr>
-                  ))
+                  logs.map((log, idx) => {
+                    const userName = log.userId && typeof log.userId === 'object'
+                      ? `${log.userId.firstName || ''} ${log.userId.lastName || ''}`.trim()
+                      : '—';
+                    return (
+                      <tr key={log._id || idx}>
+                        <td style={styles.td}>{formatDate(log.createdAt || log.timestamp)}</td>
+                        <td style={styles.td}>
+                          <span style={{
+                            ...styles.levelBadge,
+                            ...(levelColors[log.action] || levelColors.info),
+                          }}>
+                            {log.action || '—'}
+                          </span>
+                        </td>
+                        <td style={styles.td}>{log.module || '—'}</td>
+                        <td style={styles.td}>{userName}</td>
+                        <td style={styles.td}>{log.description || '—'}</td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

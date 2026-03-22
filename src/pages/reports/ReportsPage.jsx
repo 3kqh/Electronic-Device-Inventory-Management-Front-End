@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
   getWarrantyReport,
@@ -11,6 +11,7 @@ import {
   generateCustomReport,
   exportReport,
 } from '../../api/reportService';
+import { getAllCategories } from '../../api/categoryService';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { showNotification } from '../../components/Notification';
 
@@ -224,7 +225,14 @@ function buildColumns(data) {
 
 function formatCellValue(val) {
   if (val === null || val === undefined) return '—';
-  if (typeof val === 'object') return JSON.stringify(val);
+  if (val instanceof Date || (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val) && !isNaN(Date.parse(val)))) {
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) return d.toLocaleDateString('vi-VN');
+  }
+  if (typeof val === 'number') return val.toLocaleString('vi-VN');
+  if (typeof val === 'boolean') return val ? 'Có' : 'Không';
+  if (Array.isArray(val)) return val.length + ' mục';
+  if (typeof val === 'object') return JSON.stringify(val).substring(0, 80) + '…';
   return String(val);
 }
 
@@ -235,6 +243,9 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [exporting, setExporting] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
   const userRole = user?.role?.toLowerCase() || '';
   const isPrivileged = PRIVILEGED_ROLES.includes(userRole);
@@ -243,36 +254,86 @@ export default function ReportsPage() {
     (r) => !r.restricted || isPrivileged
   );
 
-  const handleSelectReport = useCallback(async (report) => {
+  // Load categories for depreciation report
+  useEffect(() => {
+    getAllCategories()
+      .then((res) => setCategories(res.data?.data || res.data || []))
+      .catch(() => {});
+  }, []);
+
+  const extractReportData = useCallback((raw, reportKey) => {
+    if (Array.isArray(raw)) return raw;
+    // Each report type nests its array data differently
+    const arrayFields = ['warranties', 'alerts', 'assignments', 'records', 'data', 'devices'];
+    for (const field of arrayFields) {
+      if (Array.isArray(raw[field]) && raw[field].length > 0) {
+        return raw[field];
+      }
+    }
+    // For summary-only reports (device-status, inventory-value), flatten summary into a row
+    if (raw.summary && typeof raw.summary === 'object') {
+      return [raw.summary];
+    }
+    return raw.data ?? raw.records ?? [raw];
+  }, []);
+
+  const handleSelectReport = useCallback(async (report, categoryId) => {
+    // For depreciation, show category picker first
+    if (report.key === 'depreciation' && !categoryId) {
+      setSelectedReport(report);
+      setShowCategoryPicker(true);
+      setReportData(null);
+      setError(null);
+      return;
+    }
+    setShowCategoryPicker(false);
     setSelectedReport(report);
     setReportData(null);
     setError(null);
     setLoading(true);
     try {
-      const payload = report.key === 'custom' ? { type: 'custom' } : undefined;
-      const res = await report.fetchFn(payload);
+      let res;
+      if (report.key === 'depreciation') {
+        res = await getDepreciationReport(categoryId);
+      } else if (report.key === 'custom') {
+        res = await report.fetchFn({ type: 'custom' });
+      } else {
+        res = await report.fetchFn();
+      }
       const raw = res.data ?? res;
-      setReportData(Array.isArray(raw) ? raw : raw.data ?? raw.records ?? [raw]);
+      setReportData(extractReportData(raw, report.key));
     } catch {
       setError('Không thể tải báo cáo. Vui lòng thử lại.');
       showNotification({ type: 'error', message: 'Lỗi khi tải báo cáo' });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractReportData]);
 
   const handleExport = useCallback(async () => {
-    if (!selectedReport) return;
+    if (!selectedReport || !reportData || reportData.length === 0) return;
     setExporting(true);
     try {
-      const res = await exportReport({ type: selectedReport.key });
+      // Flatten objects in reportData for export
+      const flatData = reportData.map((row) => {
+        const flat = {};
+        for (const [key, val] of Object.entries(row)) {
+          flat[key] = val && typeof val === 'object' ? JSON.stringify(val) : val;
+        }
+        return flat;
+      });
+      const res = await exportReport({
+        data: flatData,
+        format: 'csv',
+        filename: `report-${selectedReport.key}`,
+      });
       const blob = res.data instanceof Blob
         ? res.data
-        : new Blob([JSON.stringify(res.data ?? res)], { type: 'application/json' });
+        : new Blob([typeof res.data === 'string' ? res.data : JSON.stringify(res.data ?? res)], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `report-${selectedReport.key}.xlsx`;
+      a.download = `report-${selectedReport.key}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -283,12 +344,14 @@ export default function ReportsPage() {
     } finally {
       setExporting(false);
     }
-  }, [selectedReport]);
+  }, [selectedReport, reportData]);
 
   const handleClose = () => {
     setSelectedReport(null);
     setReportData(null);
     setError(null);
+    setShowCategoryPicker(false);
+    setSelectedCategoryId('');
   };
 
   const columns = reportData ? buildColumns(reportData) : [];
@@ -352,6 +415,41 @@ export default function ReportsPage() {
           </div>
 
           {loading && <LoadingSpinner />}
+
+          {/* Category picker for depreciation report */}
+          {showCategoryPicker && selectedReport?.key === 'depreciation' && !loading && (
+            <div style={{ padding: '20px 0', textAlign: 'center' }}>
+              <p style={{ marginBottom: '12px', color: '#555', fontSize: '14px' }}>
+                Chọn danh mục thiết bị để xem báo cáo khấu hao:
+              </p>
+              <select
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                style={{
+                  padding: '8px 16px', fontSize: '14px', borderRadius: '4px',
+                  border: '1px solid #ccc', marginRight: '8px', minWidth: '220px',
+                }}
+              >
+                <option value="">-- Chọn danh mục --</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                style={{
+                  ...styles.retryButton, marginTop: 0,
+                  opacity: selectedCategoryId ? 1 : 0.5,
+                  cursor: selectedCategoryId ? 'pointer' : 'not-allowed',
+                }}
+                disabled={!selectedCategoryId}
+                onClick={() => handleSelectReport(selectedReport, selectedCategoryId)}
+              >
+                Xem báo cáo
+              </button>
+            </div>
+          )}
 
           {error && (
             <div style={styles.errorContainer}>

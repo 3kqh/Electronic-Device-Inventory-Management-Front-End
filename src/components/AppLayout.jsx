@@ -72,6 +72,12 @@ export default function AppLayout() {
                   ...styles.navItem,
                   ...(active ? styles.navItemActive : {}),
                 }}
+                onMouseEnter={(e) => {
+                  if (!active) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) e.currentTarget.style.backgroundColor = 'transparent';
+                }}
                 title={collapsed ? item.label : undefined}
               >
                 {collapsed ? item.label.charAt(0) : item.label}
@@ -149,17 +155,21 @@ const styles = {
   nav: {
     flex: 1,
     overflowY: 'auto',
-    padding: '8px 0',
+    padding: 0,
     display: 'flex',
     flexDirection: 'column',
+    gap: 0,
+    backgroundColor: '#1a237e',
   },
   navItem: {
     display: 'block',
     width: '100%',
     padding: '10px 16px',
-    background: 'none',
+    margin: 0,
+    background: 'transparent',
     border: 'none',
-    color: 'rgba(255,255,255,0.8)',
+    borderRadius: 0,
+    color: '#fff',
     fontSize: '14px',
     textAlign: 'left',
     cursor: 'pointer',
@@ -167,6 +177,14 @@ const styles = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     transition: 'background 0.15s',
+    opacity: 1,
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    appearance: 'none',
+    outline: 'none',
+    boxSizing: 'border-box',
+    lineHeight: '1.4',
+    fontFamily: 'inherit',
   },
   navItemActive: {
     backgroundColor: 'rgba(255,255,255,0.2)',

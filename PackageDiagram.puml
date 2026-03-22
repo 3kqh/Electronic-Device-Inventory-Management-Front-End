@@ -1,0 +1,269 @@
+@startuml PackageDiagram
+!theme plain
+skinparam backgroundColor #F0F8FF
+skinparam packageStyle rectangle
+skinparam packageBorderColor #336699
+skinparam packageFontSize 14
+skinparam packageFontStyle bold
+skinparam arrowColor #555555
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam linetype ortho
+
+title Electronic Device Inventory Management — Package Diagram
+
+' ============================================================
+'  ACTORS
+' ============================================================
+actor "Users" as USERS
+
+' ============================================================
+'  APPLICATION
+' ============================================================
+package "Electronic Device Inventory Management Front-End" as APP {
+
+    ' ---- PRESENTATION LAYER ----
+    package "Presentation Layer" as PL #DDEEFF {
+
+        package "pages/" as Pages {
+            [DashboardPage]
+            [DevicePages\n(List / Form / Detail)]  as DevicePages
+            [CategoryPage]
+            [LocationPage]
+            [AssignmentListPage]
+            [MaintenanceListPage]
+            [WarrantyPages\n(List / Claim)] as WarrantyPages
+            [DepreciationPage]
+            [ReportsPage]
+            [UserPage]
+            [SystemPage]
+            [LoginPage]
+            [Home]
+        }
+
+        package "components/" as Components {
+            [AppLayout]
+            [DataTable]
+            [FormField]
+            [ConfirmDialog]
+            [LoadingSpinner]
+            [Notification\n(showNotification)] as Notification
+        }
+    }
+
+    ' ---- BUSINESS LOGIC LAYER ----
+    package "Business Logic Layer" as BL #E8F5E9 {
+
+        package "routes/" as Routes {
+            [AppRoutes]
+        }
+
+        package "context/" as Context {
+            [AuthContext\n(AuthProvider / useAuth)] as AuthContext
+        }
+
+        package "Auth Guards" as Guards {
+            [ProtectedRoute]
+            [RoleGuard]
+        }
+    }
+
+    ' ---- DATA ACCESS LAYER ----
+    package "Data Access Layer" as DL #FFF3E0 {
+
+        package "api/" as API {
+            [axiosClient\n(apiClient / userClient)\nInterceptors] as axiosClient
+            [authService]
+            [deviceService]
+            [categoryService]
+            [locationService]
+            [assignmentService]
+            [maintenanceService]
+            [warrantyService]
+            [depreciationService]
+            [reportService]
+            [userService]
+            [systemService]
+        }
+    }
+}
+
+' ============================================================
+'  CROSS CUTTING
+' ============================================================
+package "Cross Cutting" as CC #FCE4EC {
+    [Security\n(JWT Token, 401/403 handling)] as Security
+    [State Management\n(React Context, localStorage)] as StateMgmt
+    [Global Notification\n(Toast success/error)] as GlobalNotif
+}
+
+' ============================================================
+'  EXTERNAL SYSTEMS
+' ============================================================
+package "External Systems" as EXT #E0E0E0 {
+    database "Backend API\nlocalhost:3120" as BACKEND
+    [External Libraries\n(react, react-dom,\nreact-router-dom, axios)] as LIBS
+}
+
+' ============================================================
+'  RELATIONSHIPS — Layers
+' ============================================================
+USERS ..> PL : interacts
+
+PL ..> BL : uses
+BL ..> DL : calls
+DL ..> BACKEND : HTTP requests
+
+APP ..> LIBS : depends on
+
+' ============================================================
+'  RELATIONSHIPS — Cross Cutting
+' ============================================================
+CC ..> PL
+CC ..> BL
+CC ..> DL
+
+' ============================================================
+'  RELATIONSHIPS — Internal (Presentation → Components)
+' ============================================================
+DashboardPage --> DataTable
+DashboardPage --> Notification
+DevicePages --> DataTable
+DevicePages --> FormField
+DevicePages --> ConfirmDialog
+DevicePages --> LoadingSpinner
+DevicePages --> Notification
+CategoryPage --> DataTable
+CategoryPage --> FormField
+CategoryPage --> ConfirmDialog
+CategoryPage --> Notification
+LocationPage --> DataTable
+LocationPage --> FormField
+LocationPage --> ConfirmDialog
+LocationPage --> Notification
+AssignmentListPage --> DataTable
+AssignmentListPage --> FormField
+AssignmentListPage --> ConfirmDialog
+AssignmentListPage --> Notification
+MaintenanceListPage --> DataTable
+MaintenanceListPage --> ConfirmDialog
+MaintenanceListPage --> Notification
+WarrantyPages --> DataTable
+WarrantyPages --> FormField
+WarrantyPages --> ConfirmDialog
+WarrantyPages --> Notification
+DepreciationPage --> DataTable
+DepreciationPage --> FormField
+DepreciationPage --> ConfirmDialog
+DepreciationPage --> Notification
+ReportsPage --> LoadingSpinner
+ReportsPage --> Notification
+UserPage --> DataTable
+UserPage --> FormField
+UserPage --> ConfirmDialog
+UserPage --> Notification
+SystemPage --> ConfirmDialog
+SystemPage --> LoadingSpinner
+SystemPage --> Notification
+
+' ============================================================
+'  RELATIONSHIPS — Business Logic
+' ============================================================
+AppRoutes --> AuthContext
+AppRoutes --> ProtectedRoute
+AppRoutes --> RoleGuard
+AppRoutes --> AppLayout
+
+ProtectedRoute --> AuthContext
+ProtectedRoute --> LoadingSpinner
+RoleGuard --> AuthContext
+AppLayout --> AuthContext
+AuthContext --> authService
+
+DataTable --> LoadingSpinner
+
+' ============================================================
+'  RELATIONSHIPS — Pages → API Services
+' ============================================================
+LoginPage --> authService
+DashboardPage --> reportService
+DashboardPage --> userService
+DevicePages --> deviceService
+DevicePages --> categoryService
+DevicePages --> locationService
+CategoryPage --> categoryService
+LocationPage --> locationService
+AssignmentListPage --> assignmentService
+AssignmentListPage --> deviceService
+AssignmentListPage --> userService
+MaintenanceListPage --> maintenanceService
+WarrantyPages --> warrantyService
+WarrantyPages --> deviceService
+DepreciationPage --> depreciationService
+DepreciationPage --> categoryService
+ReportsPage --> reportService
+UserPage --> userService
+UserPage --> authService
+SystemPage --> systemService
+
+' ============================================================
+'  RELATIONSHIPS — API Services → axiosClient
+' ============================================================
+authService --> axiosClient
+deviceService --> axiosClient
+categoryService --> axiosClient
+locationService --> axiosClient
+assignmentService --> axiosClient
+maintenanceService --> axiosClient
+warrantyService --> axiosClient
+depreciationService --> axiosClient
+reportService --> axiosClient
+userService --> axiosClient
+systemService --> axiosClient
+
+axiosClient --> BACKEND
+
+' ============================================================
+'  PACKAGE DESCRIPTIONS (as notes)
+' ============================================================
+note bottom of Pages
+  Các trang giao diện chính, mỗi sub-package
+  tương ứng một chức năng nghiệp vụ.
+end note
+
+note bottom of Components
+  Các component UI tái sử dụng:
+  layout, bảng dữ liệu, form, dialog, spinner, notification.
+end note
+
+note bottom of Context
+  Quản lý state toàn cục — AuthContext
+  cung cấp AuthProvider và useAuth().
+end note
+
+note bottom of API
+  Tầng truy cập dữ liệu — axiosClient
+  và các service gọi Backend API.
+end note
+
+note bottom of Routes
+  Định nghĩa routing — kết nối Pages
+  với Components và Context.
+end note
+
+' ============================================================
+'  PACKAGE-LEVEL RELATIONSHIPS (<<use>> dependency)
+'  Mũi tên nét đứt ..> = dependency <<use>>
+'  Package nguồn SỬ DỤNG package đích
+' ============================================================
+' Routes ..> Pages      : AppRoutes import tất cả page components
+' Routes ..> Components : AppRoutes import ProtectedRoute, RoleGuard, AppLayout
+' Routes ..> Context    : AppRoutes import AuthProvider
+' Pages ..> Api         : Hầu hết page gọi API services
+' Pages ..> Components  : Các page dùng DataTable, FormField, ConfirmDialog...
+' Pages ..> Context     : Hầu hết page dùng useAuth()
+' Components ..> Context: AppLayout, ProtectedRoute, RoleGuard dùng useAuth()
+' Context ..> Api       : AuthContext gọi authService
+' Assets: Không có dependency (chưa được import)
+
+@enduml
