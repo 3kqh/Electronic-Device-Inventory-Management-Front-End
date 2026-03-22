@@ -22,7 +22,7 @@ export const getBackupList = () =>
   apiClient.get("/system/backup/list");
 
 export const downloadBackup = (filename) =>
-  apiClient.get(`/system/backup/download/${filename}`);
+  apiClient.get(`/system/backup/download/${filename}`, { responseType: 'blob' });
 
 export const deleteBackup = (filename) =>
   apiClient.delete(`/system/backup/delete/${filename}`);

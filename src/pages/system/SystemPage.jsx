@@ -9,7 +9,7 @@ import {
   downloadBackup,
   deleteBackup,
 } from '../../api/systemService';
-import { getAuditLogs } from '../../api/auditLogService';
+import { getAuditLogs, exportAuditLogs } from '../../api/auditLogService';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { showNotification } from '../../components/Notification';
@@ -304,6 +304,27 @@ export default function SystemPage() {
     setLogFilters((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleExportLogs = async () => {
+    try {
+      const params = {};
+      if (logFilters.startDate) params.fromDate = logFilters.startDate;
+      if (logFilters.endDate) params.toDate = logFilters.endDate;
+      if (logFilters.level) params.action = logFilters.level;
+      const res = await exportAuditLogs(params);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      showNotification({ type: 'success', message: 'Xuất nhật ký thành công' });
+    } catch (err) {
+      showNotification({ type: 'error', message: err.response?.data?.message || 'Lỗi khi xuất nhật ký' });
+    }
+  };
+
   const formatDate = (val) => {
     if (!val) return '—';
     try {
@@ -589,6 +610,12 @@ export default function SystemPage() {
               </select>
             </div>
             <button style={styles.searchBtn} onClick={fetchLogs}>Lọc</button>
+            <button
+              style={{ ...styles.searchBtn, backgroundColor: '#388e3c' }}
+              onClick={handleExportLogs}
+            >
+              Xuất CSV
+            </button>
           </div>
 
           {logsError && (
