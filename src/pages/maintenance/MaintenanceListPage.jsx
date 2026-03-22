@@ -77,7 +77,6 @@ export default function MaintenanceListPage() {
   const [total, setTotal] = useState(0);
   const pageSize = 10;
 
-  // Confirm dialogs
   const [completeTarget, setCompleteTarget] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
 
@@ -87,8 +86,12 @@ export default function MaintenanceListPage() {
     try {
       const res = await getAllMaintenance({ page, limit: pageSize });
       const data = res.data;
-      setRecords(data.maintenanceRecords || data.data || data || []);
-      setTotal(data.total || data.totalCount || (data.maintenanceRecords || data.data || data || []).length);
+      const list = data.maintenanceRecords || data.data || data || [];
+
+      console.log("DEBUG STATUS:", list); // debug nếu cần
+
+      setRecords(list);
+      setTotal(data.total || data.totalCount || list.length);
     } catch (err) {
       setError(err.response?.data?.message || 'Không thể tải danh sách bảo trì');
     } finally {
@@ -146,13 +149,13 @@ export default function MaintenanceListPage() {
     }
   };
 
+  const isInProgress = (status) => {
+    return ['in_progress', 'inProgress', 'IN_PROGRESS'].includes(status);
+  };
+
   const columns = [
     { key: 'deviceId', label: 'Thiết bị', render: (_, row) => getDeviceName(row) },
-    {
-      key: 'type',
-      label: 'Loại',
-      render: (val) => typeLabels[val] || val || '—',
-    },
+    { key: 'type', label: 'Loại', render: (val) => typeLabels[val] || val || '—' },
     {
       key: 'status',
       label: 'Trạng thái',
@@ -165,23 +168,38 @@ export default function MaintenanceListPage() {
     { key: 'scheduledDate', label: 'Ngày lên lịch', render: (val) => formatDate(val) },
     { key: 'performedBy', label: 'Người thực hiện', render: (_, row) => getPerformedBy(row) },
     {
-      key: '_actions',
-      label: 'Hành động',
-      render: (_, row) => (
-        <>
-          {row.status === 'in_progress' && isManager && (
-            <button style={styles.actionBtn} onClick={(e) => { e.stopPropagation(); setCompleteTarget(row); }}>
-              Hoàn thành
-            </button>
-          )}
-          {(row.status === 'scheduled' || row.status === 'pending') && isManager && (
-            <button style={styles.cancelBtn} onClick={(e) => { e.stopPropagation(); setCancelTarget(row); }}>
-              Hủy
-            </button>
-          )}
-        </>
-      ),
-    },
+  key: '_actions',
+  label: 'Hành động',
+  render: (_, row) => (
+    <>
+      {/* Hoàn thành nhanh */}
+      {['in_progress', 'scheduled'].includes(row.status) && isManager && (
+        <button
+          style={styles.actionBtn}
+          onClick={(e) => {
+            e.stopPropagation();
+            setCompleteTarget(row);
+          }}
+        >
+          Hoàn thành nhanh
+        </button>
+      )}
+
+      {/* Hủy */}
+      {(row.status === 'scheduled' || row.status === 'pending') && isManager && (
+        <button
+          style={styles.cancelBtn}
+          onClick={(e) => {
+            e.stopPropagation();
+            setCancelTarget(row);
+          }}
+        >
+          Hủy
+        </button>
+      )}
+    </>
+  ),
+},
   ];
 
   if (loading && records.length === 0) return <LoadingSpinner />;
@@ -217,7 +235,6 @@ export default function MaintenanceListPage() {
         onPageChange={setPage}
       />
 
-      {/* Complete Confirm Dialog */}
       <ConfirmDialog
         open={!!completeTarget}
         title="Hoàn thành bảo trì"
@@ -226,7 +243,6 @@ export default function MaintenanceListPage() {
         onCancel={() => setCompleteTarget(null)}
       />
 
-      {/* Cancel Confirm Dialog */}
       <ConfirmDialog
         open={!!cancelTarget}
         title="Hủy bảo trì"

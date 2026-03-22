@@ -292,9 +292,9 @@ export default function WarrantyListPage() {
   };
 
   const deviceOptions = devices.map((d) => ({
-    value: d._id || d.id,
-    label: d.name || d.assetTag || d._id,
-  }));
+  value: d._id || d.id,
+  label: `${d.name || d.assetTag || d._id} ${d.serialNumber ? `(${d.serialNumber})` : ''}`,
+}));
 
   const typeOptions = [
     { value: 'manufacturer', label: 'Nhà sản xuất' },
