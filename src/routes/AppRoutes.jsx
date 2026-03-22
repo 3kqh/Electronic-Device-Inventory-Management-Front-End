@@ -28,6 +28,7 @@ import ReportsPage from "../pages/reports/ReportsPage";
 // Admin-only pages
 import UserPage from "../pages/users/UserPage";
 import SystemPage from "../pages/system/SystemPage";
+import DepartmentPage from "../pages/departments/DepartmentPage";
 
 export default function AppRoutes() {
   return (
@@ -75,6 +76,14 @@ export default function AppRoutes() {
               element={
                 <RoleGuard allowedRoles={["admin"]}>
                   <UserPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/departments"
+              element={
+                <RoleGuard allowedRoles={["admin"]}>
+                  <DepartmentPage />
                 </RoleGuard>
               }
             />

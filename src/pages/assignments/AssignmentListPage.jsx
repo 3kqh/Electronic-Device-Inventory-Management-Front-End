@@ -183,7 +183,7 @@ export default function AssignmentListPage() {
       label: 'Hành động',
       render: (_, row) => (
         <>
-          {row.status === 'pending' && !isManager && (
+          {row.status === 'pending' && (
             <button style={styles.actionBtn} onClick={(e) => { e.stopPropagation(); setAckTarget(row); }}>
               Xác nhận
             </button>
@@ -224,7 +224,7 @@ export default function AssignmentListPage() {
     try {
       await assignDevice({
         deviceId: assignForm.deviceId,
-        assignedTo: { userId: assignForm.userId },
+        userId: assignForm.userId,
         notes: assignForm.notes,
       });
       showNotification({ type: 'success', message: 'Phân công thiết bị thành công' });

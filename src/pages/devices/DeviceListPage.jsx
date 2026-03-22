@@ -118,6 +118,7 @@ export default function DeviceListPage() {
   const canAdd = user?.role === 'admin' || user?.role === 'inventory_manager';
 
   const columns = [
+    { key: '_id', label: 'Mã thiết bị', sortable: true },
     { key: 'assetTag', label: 'Mã tài sản', sortable: true },
     { key: 'name', label: 'Tên thiết bị', sortable: true },
     {

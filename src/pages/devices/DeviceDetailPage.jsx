@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getDeviceById, deleteDevice } from '../../api/deviceService';
+import { getDeviceById, deleteDevice, disposeDevice } from '../../api/deviceService';
 import { useAuth } from '../../context/AuthContext';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { showNotification } from '../../components/Notification';
@@ -50,6 +50,16 @@ const styles = {
   editButton: {
     padding: '8px 20px',
     backgroundColor: '#1976d2',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '14px',
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+  disposeButton: {
+    padding: '8px 20px',
+    backgroundColor: '#ff9800',
     color: '#fff',
     border: 'none',
     borderRadius: '4px',
@@ -167,6 +177,7 @@ export default function DeviceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [disposeConfirmOpen, setDisposeConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const canManage = user?.role === 'admin' || user?.role === 'inventory_manager';
@@ -203,6 +214,18 @@ export default function DeviceDetailPage() {
     }
   };
 
+  const handleDispose = async () => {
+    try {
+      await disposeDevice(id);
+      showNotification({ type: 'success', message: 'Thanh lý thiết bị thành công' });
+      fetchDevice();
+    } catch (err) {
+      showNotification({ type: 'error', message: err.response?.data?.message || 'Không thể thanh lý thiết bị' });
+    } finally {
+      setDisposeConfirmOpen(false);
+    }
+  };
+
   if (loading) return <LoadingSpinner />;
 
   if (error) {
@@ -231,6 +254,11 @@ export default function DeviceDetailPage() {
               <button style={styles.editButton} onClick={() => navigate(`/devices/${id}/edit`)}>
                 Sửa
               </button>
+              {device.status !== 'retired' && (
+                <button style={styles.disposeButton} onClick={() => setDisposeConfirmOpen(true)}>
+                  Thanh lý
+                </button>
+              )}
               <button
                 style={styles.deleteButton}
                 onClick={() => setConfirmOpen(true)}
@@ -363,6 +391,14 @@ export default function DeviceDetailPage() {
         message={`Bạn có chắc chắn muốn xóa thiết bị "${device.name || ''}"? Hành động này không thể hoàn tác.`}
         onConfirm={handleDelete}
         onCancel={() => setConfirmOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={disposeConfirmOpen}
+        title="Xác nhận thanh lý"
+        message={`Bạn có chắc chắn muốn thanh lý thiết bị "${device.name || ''}"? Thiết bị sẽ chuyển sang trạng thái "Đã thanh lý".`}
+        onConfirm={handleDispose}
+        onCancel={() => setDisposeConfirmOpen(false)}
       />
     </div>
   );

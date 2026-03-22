@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getAllUsers, deleteUser, assignRole } from '../../api/userService';
 import { register } from '../../api/authService';
+import { getAllDepartments } from '../../api/departmentService';
 import DataTable from '../../components/DataTable';
 import FormField from '../../components/FormField';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -108,6 +109,12 @@ export default function UserPage() {
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [departments, setDepartments] = useState([]);
+
+  const departmentOptions = departments.map((d) => ({
+    value: d._id || d.id,
+    label: d.name || d.departmentName || d._id,
+  }));
 
   const columns = [
     { key: 'email', label: 'Email', sortable: true },
@@ -160,6 +167,15 @@ export default function UserPage() {
   }, []);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  useEffect(() => {
+    getAllDepartments()
+      .then((res) => {
+        const data = res.data;
+        setDepartments(data.departments || data.data || data || []);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleEditClick = (row) => {
     setEditingUser(row);
@@ -217,7 +233,13 @@ export default function UserPage() {
       setAddForm(emptyAddForm);
       fetchUsers();
     } catch (err) {
-      const msg = err.response?.data?.message || 'Lỗi khi thêm người dùng';
+      const data = err.response?.data;
+      let msg = 'Lỗi khi thêm người dùng';
+      if (data?.errors && Array.isArray(data.errors)) {
+        msg = data.errors.join(', ');
+      } else if (data?.message) {
+        msg = data.message;
+      }
       showNotification({ type: 'error', message: msg });
     } finally {
       setSubmitting(false);
@@ -288,7 +310,7 @@ export default function UserPage() {
             <FormField label="Họ" name="firstName" value={addForm.firstName} onChange={handleAddFormChange} error={formErrors.firstName} required />
             <FormField label="Tên" name="lastName" value={addForm.lastName} onChange={handleAddFormChange} error={formErrors.lastName} required />
             <FormField label="Vai trò" name="role" type="select" value={addForm.role} onChange={handleAddFormChange} error={formErrors.role} options={roleOptions} required />
-            <FormField label="Mã phòng ban" name="departmentId" value={addForm.departmentId} onChange={handleAddFormChange} />
+            <FormField label="Phòng ban" name="departmentId" type="select" value={addForm.departmentId} onChange={handleAddFormChange} options={departmentOptions} />
             <div style={styles.formActions}>
               <button style={styles.cancelBtn} onClick={() => setShowAddForm(false)}>Hủy</button>
               <button style={styles.submitBtn} onClick={handleAddSubmit} disabled={submitting}>
@@ -306,7 +328,7 @@ export default function UserPage() {
             <FormField label="Họ" name="firstName" value={editForm.firstName} onChange={handleEditFormChange} />
             <FormField label="Tên" name="lastName" value={editForm.lastName} onChange={handleEditFormChange} />
             <FormField label="Vai trò" name="role" type="select" value={editForm.role} onChange={handleEditFormChange} error={formErrors.role} options={roleOptions} required />
-            <FormField label="Mã phòng ban" name="departmentId" value={editForm.departmentId} onChange={handleEditFormChange} />
+            <FormField label="Phòng ban" name="departmentId" type="select" value={editForm.departmentId} onChange={handleEditFormChange} options={departmentOptions} />
             <div style={styles.formActions}>
               <button style={styles.cancelBtn} onClick={() => setShowEditForm(false)}>Hủy</button>
               <button style={styles.submitBtn} onClick={handleEditSubmit} disabled={submitting}>

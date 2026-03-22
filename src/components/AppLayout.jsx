@@ -13,6 +13,7 @@ const ALL_NAV_ITEMS = [
   { label: 'Khấu hao', route: '/depreciation', roles: ['admin', 'inventory_manager'] },
   { label: 'Báo cáo', route: '/reports', roles: ['admin', 'inventory_manager', 'staff'] },
   { label: 'Người dùng', route: '/users', roles: ['admin'] },
+  { label: 'Phòng ban', route: '/departments', roles: ['admin'] },
   { label: 'Hệ thống', route: '/system', roles: ['admin'] },
 ];
 
