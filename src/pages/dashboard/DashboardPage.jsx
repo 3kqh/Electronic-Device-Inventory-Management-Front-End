@@ -25,36 +25,70 @@ const STATUS_COLORS = {
 const BAR_COLORS = ['#1976d2', '#388e3c', '#f57c00', '#7b1fa2', '#0097a7', '#e64a19', '#5c6bc0', '#00897b'];
 
 const styles = {
-  container: { padding: '24px' },
-  title: { fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', color: '#1a1a1a' },
+  container: { padding: '4px 2px 8px' },
+  hero: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 14,
+    padding: '18px 20px',
+    borderRadius: 18,
+    background:
+      'linear-gradient(135deg, rgba(47, 143, 99, 0.15) 0%, rgba(212, 185, 61, 0.18) 100%)',
+    border: '1px solid rgba(255, 255, 255, 0.62)',
+    boxShadow: 'var(--shadow-card)',
+    marginBottom: 22,
+    flexWrap: 'wrap',
+  },
+  titleBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+  },
+  title: { fontSize: '29px', fontWeight: 'bold', margin: 0, color: 'var(--text-primary)' },
+  subtitle: { margin: 0, color: 'var(--text-secondary)', fontSize: 14 },
+  updatedBadge: {
+    padding: '8px 12px',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    border: '1px solid rgba(47, 143, 99, 0.2)',
+    color: 'var(--accent-2)',
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: '0.04em',
+  },
   grid: {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px',
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '14px',
   },
   card: {
-    background: '#fff', borderRadius: '8px', padding: '20px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.12)', display: 'flex',
+    background: 'var(--bg-surface)', borderRadius: '14px', padding: '20px',
+    boxShadow: 'var(--shadow-card)', display: 'flex',
     flexDirection: 'column', alignItems: 'center', minHeight: '100px', justifyContent: 'center',
+    border: '1px solid var(--border-soft)',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
   },
-  cardLabel: { fontSize: '14px', color: '#666', marginBottom: '8px' },
+  cardLabel: { fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 600 },
   cardValue: { fontSize: '32px', fontWeight: 'bold' },
   chartsRow: {
     display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '28px',
   },
   chartCard: {
-    background: '#fff', borderRadius: '8px', padding: '20px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+    background: 'var(--bg-surface)', borderRadius: '14px', padding: '20px',
+    boxShadow: 'var(--shadow-card)',
+    border: '1px solid var(--border-soft)',
   },
-  chartTitle: { fontSize: '16px', fontWeight: 600, color: '#333', marginBottom: '16px' },
+  chartTitle: { fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px' },
   fullWidth: { gridColumn: '1 / -1' },
   skeleton: {
-    background: 'linear-gradient(90deg, #eee 25%, #ddd 50%, #eee 75%)',
-    backgroundSize: '200% 100%', borderRadius: '8px', padding: '20px', minHeight: '100px',
+    background: 'linear-gradient(90deg, #ecefe6 25%, #dbe2d3 50%, #ecefe6 75%)',
+    backgroundSize: '200% 100%', borderRadius: '14px', padding: '20px', minHeight: '100px',
+    border: '1px solid var(--border-soft)',
   },
-  skeletonLine: { background: '#e0e0e0', borderRadius: '4px', height: '14px', width: '60%', margin: '0 auto 12px' },
-  skeletonValue: { background: '#e0e0e0', borderRadius: '4px', height: '32px', width: '40%', margin: '0 auto' },
-  errorContainer: { textAlign: 'center', padding: '40px 20px', color: '#d32f2f' },
+  skeletonLine: { background: '#d8dfd2', borderRadius: '4px', height: '14px', width: '60%', margin: '0 auto 12px' },
+  skeletonValue: { background: '#d8dfd2', borderRadius: '4px', height: '32px', width: '40%', margin: '0 auto' },
+  errorContainer: { textAlign: 'center', padding: '40px 20px', color: '#a6372a' },
   retryButton: {
-    padding: '8px 24px', fontSize: '14px', backgroundColor: '#1976d2',
+    padding: '8px 24px', fontSize: '14px', backgroundColor: 'var(--accent-2)',
     color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer',
   },
 };
@@ -70,7 +104,17 @@ function SkeletonCard() {
 
 function SummaryCard({ label, value, color }) {
   return (
-    <div style={{ ...styles.card, borderTop: `3px solid ${color}` }}>
+    <div
+      style={{ ...styles.card, borderTop: `3px solid ${color}` }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-3px)';
+        e.currentTarget.style.boxShadow = '0 12px 22px rgba(20, 35, 28, 0.13)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+      }}
+    >
       <span style={styles.cardLabel}>{label}</span>
       <span style={{ ...styles.cardValue, color }}>{value}</span>
     </div>
@@ -155,7 +199,12 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div style={styles.container}>
-        <h1 style={styles.title}>Dashboard</h1>
+        <div style={styles.hero}>
+          <div style={styles.titleBlock}>
+            <h1 style={styles.title}>Dashboard</h1>
+            <p style={styles.subtitle}>Theo dõi tổng quan hệ thống thiết bị theo thời gian thực.</p>
+          </div>
+        </div>
         <div style={styles.errorContainer}>
           <p>{error}</p>
           <button style={styles.retryButton} onClick={fetchData}>Thử lại</button>
@@ -166,7 +215,13 @@ export default function DashboardPage() {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Dashboard</h1>
+      <div style={styles.hero}>
+        <div style={styles.titleBlock}>
+          <h1 style={styles.title}>Dashboard</h1>
+          <p style={styles.subtitle}>Theo dõi tổng quan hệ thống thiết bị theo thời gian thực.</p>
+        </div>
+        <span style={styles.updatedBadge}>LIVE OVERVIEW</span>
+      </div>
 
       {/* Summary cards */}
       <div style={styles.grid}>

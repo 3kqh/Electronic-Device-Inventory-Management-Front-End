@@ -15,27 +15,28 @@ export function showNotification({ type, message }) {
 
 // ── Styles ───────────────────────────────────────────────────────
 const typeColors = {
-  success: { background: '#e8f5e9', border: '#4caf50', text: '#2e7d32' },
-  error:   { background: '#ffebee', border: '#f44336', text: '#c62828' },
+  success: { background: 'rgba(233, 252, 241, 0.92)', border: '#2f8f63', text: '#1f6244' },
+  error:   { background: 'rgba(255, 235, 232, 0.92)', border: '#d64b3b', text: '#9f3226' },
 };
 
 const styles = {
   container: {
     position: 'fixed',
-    top: 20,
-    right: 20,
+    top: 18,
+    right: 18,
     zIndex: 9999,
     minWidth: 280,
     maxWidth: 420,
-    padding: '14px 20px',
-    borderRadius: 6,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    padding: '13px 16px',
+    borderRadius: 12,
+    boxShadow: '0 14px 28px rgba(20, 35, 28, 0.16)',
     display: 'flex',
     alignItems: 'center',
     gap: 10,
     fontSize: 14,
     fontFamily: 'inherit',
-    transition: 'opacity 0.3s ease',
+    transition: 'opacity 0.3s ease, transform 0.3s ease',
+    backdropFilter: 'blur(3px)',
   },
 };
 
@@ -74,6 +75,7 @@ export default function Notification() {
       style={{
         ...styles.container,
         backgroundColor: colors.background,
+        border: `1px solid ${colors.border}66`,
         borderLeft: `4px solid ${colors.border}`,
         color: colors.text,
       }}

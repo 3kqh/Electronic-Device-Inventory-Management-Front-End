@@ -15,12 +15,13 @@ const styles = {
     padding: '40px 0',
   },
   spinner: {
-    width: 40,
-    height: 40,
-    border: '4px solid #e0e0e0',
-    borderTop: '4px solid #1976d2',
+    width: 42,
+    height: 42,
+    border: '4px solid #d7e0d3',
+    borderTop: '4px solid var(--accent-2)',
     borderRadius: '50%',
     animation: 'edims-spin 0.8s linear infinite',
+    boxShadow: '0 0 0 4px rgba(47, 143, 99, 0.08)',
   },
 };
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -22,6 +22,8 @@ const SIDEBAR_COLLAPSED_WIDTH = 60;
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 960);
+  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -29,7 +31,23 @@ export default function AppLayout() {
   const userRole = user?.role || '';
   const navItems = ALL_NAV_ITEMS.filter((item) => item.roles.includes(userRole));
 
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+      const mobile = window.innerWidth < 960;
+      setIsMobile(mobile);
+      if (mobile) setCollapsed(true);
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
+  const effectiveSidebarWidth = isMobile ? 0 : sidebarWidth;
+  const mainPadding = viewportWidth < 480 ? 14 : viewportWidth < 640 ? 18 : 26;
+  const navFontSize = viewportWidth < 480 ? 13 : 14;
 
   const isActive = (route) => {
     if (route === '/dashboard') return location.pathname === '/dashboard';
@@ -41,10 +59,26 @@ export default function AppLayout() {
     navigate('/login');
   };
 
+  const handleNavigate = (route) => {
+    navigate(route);
+    if (isMobile) {
+      setCollapsed(true);
+    }
+  };
+
   return (
     <div style={styles.wrapper}>
-      <aside style={{ ...styles.sidebar, width: sidebarWidth }}>
+      <aside
+        style={{
+          ...styles.sidebar,
+          width: sidebarWidth,
+          ...(isMobile ? styles.sidebarMobile : {}),
+          ...(isMobile && collapsed ? styles.sidebarHidden : {}),
+          ...(isMobile && !collapsed ? styles.sidebarVisible : {}),
+        }}
+      >
         <div style={styles.sidebarHeader}>
+          {!collapsed && <div style={styles.brand}>EDIMS</div>}
           <button
             onClick={() => setCollapsed((prev) => !prev)}
             style={styles.toggleBtn}
@@ -68,13 +102,14 @@ export default function AppLayout() {
             return (
               <button
                 key={item.route}
-                onClick={() => navigate(item.route)}
+                onClick={() => handleNavigate(item.route)}
                 style={{
                   ...styles.navItem,
+                  fontSize: navFontSize,
                   ...(active ? styles.navItemActive : {}),
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                  if (!active) e.currentTarget.style.backgroundColor = 'rgba(233, 244, 238, 0.08)';
                 }}
                 onMouseLeave={(e) => {
                   if (!active) e.currentTarget.style.backgroundColor = 'transparent';
@@ -94,7 +129,9 @@ export default function AppLayout() {
         </div>
       </aside>
 
-      <main style={{ ...styles.main, marginLeft: sidebarWidth }}>
+      {isMobile && !collapsed && <div style={styles.backdrop} onClick={() => setCollapsed(true)} />}
+
+      <main style={{ ...styles.main, marginLeft: effectiveSidebarWidth, padding: mainPadding }}>
         <Outlet />
       </main>
     </div>
@@ -105,40 +142,60 @@ const styles = {
   wrapper: {
     display: 'flex',
     minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'transparent',
   },
   sidebar: {
     position: 'fixed',
     top: 0,
     left: 0,
     height: '100vh',
-    backgroundColor: '#1a237e',
-    color: '#fff',
+    background: 'linear-gradient(180deg, var(--bg-sidebar) 0%, var(--bg-sidebar-2) 100%)',
+    color: 'var(--text-light)',
     display: 'flex',
     flexDirection: 'column',
-    transition: 'width 0.2s ease',
+    transition: 'width 0.25s ease, transform 0.25s ease',
     overflow: 'hidden',
-    zIndex: 100,
+    zIndex: 101,
+    borderRight: '1px solid rgba(233, 244, 238, 0.12)',
+    boxShadow: 'var(--shadow-soft)',
+  },
+  sidebarMobile: {
+    width: SIDEBAR_WIDTH,
+  },
+  sidebarHidden: {
+    transform: 'translateX(-100%)',
+  },
+  sidebarVisible: {
+    transform: 'translateX(0)',
+  },
+  brand: {
+    display: 'inline-flex',
+    width: 'fit-content',
+    fontFamily: 'Space Grotesk, Plus Jakarta Sans, sans-serif',
+    fontSize: '22px',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    color: 'var(--accent)',
   },
   sidebarHeader: {
-    padding: '12px',
-    borderBottom: '1px solid rgba(255,255,255,0.15)',
+    padding: '16px 14px 12px',
+    borderBottom: '1px solid rgba(233, 244, 238, 0.16)',
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '10px',
   },
   toggleBtn: {
-    background: 'none',
-    border: 'none',
-    color: '#fff',
-    fontSize: '20px',
+    color: 'var(--text-light)',
+    fontSize: '18px',
     cursor: 'pointer',
     alignSelf: 'flex-end',
-    padding: '4px 8px',
-    borderRadius: '4px',
+    padding: '6px 10px',
+    borderRadius: '8px',
+    backgroundColor: 'rgba(233, 244, 238, 0.08)',
+    border: '1px solid rgba(233, 244, 238, 0.16)',
   },
   userInfo: {
-    padding: '4px 0',
+    padding: '6px 4px 2px',
   },
   userName: {
     fontWeight: 600,
@@ -149,35 +206,34 @@ const styles = {
   },
   userRole: {
     fontSize: '12px',
-    opacity: 0.75,
+    opacity: 0.86,
+    color: '#bdd8cb',
     textTransform: 'capitalize',
     whiteSpace: 'nowrap',
   },
   nav: {
     flex: 1,
     overflowY: 'auto',
-    padding: 0,
+    padding: '8px',
     display: 'flex',
     flexDirection: 'column',
-    gap: 0,
-    backgroundColor: '#1a237e',
+    gap: 4,
   },
   navItem: {
     display: 'block',
     width: '100%',
-    padding: '10px 16px',
+    padding: '10px 14px',
     margin: 0,
     background: 'transparent',
-    border: 'none',
-    borderRadius: 0,
-    color: '#fff',
+    borderRadius: 10,
+    color: '#e4f1ea',
     fontSize: '14px',
     textAlign: 'left',
     cursor: 'pointer',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    transition: 'background 0.15s',
+    transition: 'background 0.2s ease, transform 0.2s ease',
     opacity: 1,
     WebkitAppearance: 'none',
     MozAppearance: 'none',
@@ -188,29 +244,38 @@ const styles = {
     fontFamily: 'inherit',
   },
   navItemActive: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    color: '#fff',
+    backgroundColor: 'rgba(212, 185, 61, 0.2)',
+    color: '#fff9da',
     fontWeight: 600,
+    border: '1px solid rgba(212, 185, 61, 0.45)',
   },
   sidebarFooter: {
     padding: '12px',
-    borderTop: '1px solid rgba(255,255,255,0.15)',
+    borderTop: '1px solid rgba(233, 244, 238, 0.16)',
   },
   logoutBtn: {
     width: '100%',
-    padding: '8px 12px',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    border: '1px solid rgba(255,255,255,0.25)',
-    color: '#fff',
-    borderRadius: '4px',
+    padding: '10px 12px',
+    backgroundColor: 'rgba(233, 244, 238, 0.08)',
+    border: '1px solid rgba(233, 244, 238, 0.28)',
+    color: '#f4fff9',
+    borderRadius: '10px',
     cursor: 'pointer',
     fontSize: '13px',
     whiteSpace: 'nowrap',
+    transition: 'background-color 0.2s ease',
+  },
+  backdrop: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 100,
+    backgroundColor: 'rgba(10, 18, 14, 0.45)',
+    backdropFilter: 'blur(2px)',
   },
   main: {
     flex: 1,
-    padding: '24px',
+    padding: '26px',
     minHeight: '100vh',
-    transition: 'margin-left 0.2s ease',
+    transition: 'margin-left 0.25s ease',
   },
 };

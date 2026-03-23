@@ -1,16 +1,87 @@
-body {
-  margin: 0;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+
+:root {
+  --bg-app: #f4f6ec;
+  --bg-surface: #ffffff;
+  --bg-surface-soft: #f8f9f3;
+  --bg-sidebar: #1f2f29;
+  --bg-sidebar-2: #314a3d;
+  --text-primary: #1f2b23;
+  --text-secondary: #5d6d64;
+  --text-light: #e9f4ee;
+  --accent: #d4b93d;
+  --accent-2: #2f8f63;
+  --danger: #d64b3b;
+  --border-soft: #dfe5d8;
+  --shadow-soft: 0 12px 30px rgba(34, 58, 44, 0.08);
+  --shadow-card: 0 8px 22px rgba(20, 35, 28, 0.08);
 }
 
-/* Reset button defaults inside sidebar */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', Tahoma, sans-serif;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(212, 185, 61, 0.2) 0, rgba(212, 185, 61, 0) 24%),
+    radial-gradient(circle at 96% 0, rgba(47, 143, 99, 0.22) 0, rgba(47, 143, 99, 0) 28%),
+    var(--bg-app);
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: 0.01em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
 aside button {
   margin: 0;
   padding: 0;
   border: none;
   background: transparent;
-  font: inherit;
   color: inherit;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9eac9d;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: #eef1e8;
+}
+
+@media (max-width: 960px) {
+  body {
+    background:
+      radial-gradient(circle at 6% 8%, rgba(212, 185, 61, 0.14) 0, rgba(212, 185, 61, 0) 25%),
+      var(--bg-app);
+  }
 }

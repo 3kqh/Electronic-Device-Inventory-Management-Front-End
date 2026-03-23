@@ -5,6 +5,11 @@ const styles = {
   container: {
     position: 'relative',
     width: '100%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: 'var(--bg-surface)',
+    boxShadow: 'var(--shadow-card)',
+    border: '1px solid var(--border-soft)',
   },
   loadingOverlay: {
     position: 'absolute',
@@ -12,7 +17,7 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: 'rgba(248, 249, 243, 0.76)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -20,27 +25,29 @@ const styles = {
   },
   table: {
     width: '100%',
-    borderCollapse: 'collapse',
-    backgroundColor: '#fff',
+    borderCollapse: 'separate',
+    borderSpacing: 0,
+    backgroundColor: 'var(--bg-surface)',
   },
   th: {
-    padding: '12px 16px',
+    padding: '14px 16px',
     textAlign: 'left',
-    borderBottom: '2px solid #e0e0e0',
-    backgroundColor: '#f5f5f5',
+    borderBottom: '1px solid var(--border-soft)',
+    backgroundColor: 'var(--bg-surface-soft)',
     fontWeight: 600,
-    fontSize: 14,
-    color: '#333',
+    fontSize: 13,
+    color: 'var(--text-primary)',
+    letterSpacing: '0.02em',
     userSelect: 'none',
   },
   thSortable: {
     cursor: 'pointer',
   },
   td: {
-    padding: '10px 16px',
-    borderBottom: '1px solid #e0e0e0',
+    padding: '12px 16px',
+    borderBottom: '1px solid #eef2e6',
     fontSize: 14,
-    color: '#555',
+    color: 'var(--text-secondary)',
   },
   row: {
     transition: 'background-color 0.15s',
@@ -50,39 +57,47 @@ const styles = {
   },
   emptyState: {
     textAlign: 'center',
-    padding: '40px 16px',
-    color: '#999',
+    padding: '46px 16px',
+    color: '#829085',
     fontSize: 15,
   },
   pagination: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '12px 16px',
-    borderTop: '1px solid #e0e0e0',
+    padding: '13px 16px',
+    borderTop: '1px solid var(--border-soft)',
+    backgroundColor: '#fafbf7',
     fontSize: 14,
-    color: '#555',
+    color: 'var(--text-secondary)',
+    flexWrap: 'wrap',
+    gap: 10,
   },
   paginationButtons: {
     display: 'flex',
     gap: 8,
+    alignItems: 'center',
   },
   pageButton: {
-    padding: '6px 12px',
-    border: '1px solid #ccc',
-    borderRadius: 4,
+    minWidth: 34,
+    padding: '6px 10px',
+    border: '1px solid var(--border-soft)',
+    borderRadius: 10,
     backgroundColor: '#fff',
     cursor: 'pointer',
     fontSize: 13,
+    color: 'var(--text-primary)',
+    transition: 'all 0.2s ease',
   },
   pageButtonDisabled: {
     opacity: 0.5,
     cursor: 'not-allowed',
   },
   pageButtonActive: {
-    backgroundColor: '#1976d2',
+    backgroundColor: 'var(--accent-2)',
     color: '#fff',
-    borderColor: '#1976d2',
+    borderColor: 'var(--accent-2)',
+    fontWeight: 700,
   },
   sortArrow: {
     marginLeft: 4,
@@ -172,7 +187,7 @@ export default function DataTable({
                 }}
                 onClick={() => onRowClick && onRowClick(row)}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f9f9f9';
+                  e.currentTarget.style.backgroundColor = '#f8fbf5';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = '';
